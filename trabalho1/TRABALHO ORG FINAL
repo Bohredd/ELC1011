@@ -45,7 +45,7 @@ main:
     move $a0, $a1
     syscall
 
-    li $v0, 11           # Imprimir uma nova linha ap�s mostrar o conte�do do arquivo
+    li $v0, 11           # Imprimir uma nova linha após mostrar o conteúdo do arquivo
     li $a0, 10
     syscall
 
@@ -53,24 +53,26 @@ main:
     move $a0, $s0
     syscall
 
-    move $t1, $a1        # Salvar o endere�o da string lida em $t1
+    move $t1, $a1        # Salvar o endereço da string lida em $t1
     
-    loop:
-    	li $t3, 0 # Index do procura igualdade
-        lbu $t0, 0($t1)    # Carregar o caractere atual
-        beqz $t0, done     # Verificar se chegou ao final da string (caractere nulo)
+    addiu $t1, $t1, 2    # Avançar para o terceiro caractere
 
-        move $a0, $t0      # Preparar o argumento para imprimir o caractere
-        li $v0, 11         # Chamar a syscall para imprimir o caractere
+    loop:
+        li $t3, 0         # Índice da procura igualdade
+        lbu $t0, 0($t1)   # Carregar o caractere atual
+        beqz $t0, done    # Verificar se chegou ao final da string (caractere nulo)
+
+        move $a0, $t0     # Preparar o argumento para imprimir o caractere
+        li $v0, 11        # Chamar a syscall para imprimir o caractere
         syscall
 
-        li $v0, 11         # Imprimir uma nova linha
+        li $v0, 11        # Imprimir uma nova linha
         li $a0, 10
         syscall
         
         j procuraIgualdade
 
-        addiu $t1, $t1, 1  # Avan�ar para o pr�ximo caractere
+        addiu $t1, $t1, 1 # Avançar para o próximo caractere
 
         j loop
 
@@ -79,42 +81,39 @@ main:
         syscall
         
     procuraIgualdade:
-    	lb $t2, vetorHexadecimais($t3) # Carrega em $t2 o valor do caracter em inteiro do vetor hexadecimais na posicao $t3 
+        lb $t2, vetorHexadecimais($t3) # Carrega em $t2 o valor do caractere em inteiro do vetor hexadecimais na posição $t3 
     	
-    	beq $t2, $t0, encontreiValor # Verifica se $t2 e $t0 s�o iguais, se iguais pula para encontrei valor
+        beq $t2, $t0, encontreiValor # Verifica se $t2 e $t0 são iguais, se iguais pula para encontreiValor
     	
-    	addi $t3, $t3, 1 
+        addi $t3, $t3, 1 
     	
-    	j procuraIgualdade
+        j procuraIgualdade
     	
     encontreiValor:
-    	li $v0, 1 # para printar inteiro
-    	move $a0, $t3
-    	syscall
+        li $v0, 1 # para imprimir inteiro
+        move $a0, $t3
+        syscall
     	
-    	li $v0, 11         # Imprimir uma nova linha
+        li $v0, 11         # Imprimir uma nova linha
         li $a0, 10
         syscall
     	
-    	addi $t1, $t1, 1
+        addi $t1, $t1, 1
     	
-    	j mostraValorBinario
+        j mostraValorBinario
     	
     mostraValorBinario:
     
-    	mul $t3, $t3, 4 # Pega a posicao que esta o valor binario no vetor 
-    	mflo $t3
+        mul $t3, $t3, 4   # Pega a posição que está o valor binário no vetor 
+        mflo $t3
  
+        lw $a0, vetorBinarios($t3)  # Puxa para $a0 o valor binário 
    	
-   	lw $a0, vetorBinarios($t3) # Puxa para a0 o valor binario 
+        li $v0, 4  # Imprime a string em binário 
+        syscall
    	
-   	li $v0, 4 # Imprime a string em binario 
-   	syscall
-   	
-   	
-   	li $v0, 11         # Imprimir uma nova linha
+        li $v0, 11         # Imprimir uma nova linha
         li $a0, 10
         syscall
    
-    
-    	j loop
+        j loop
