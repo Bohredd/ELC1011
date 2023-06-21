@@ -1,0 +1,750 @@
+.data
+  nomeArquivo: .asciiz "C:/entrada.bin"
+  .align 2
+  valores: .space 1544
+  instrucaoInvalida: .asciiz "| Instrução inválida! |"
+  insJ: .asciiz "j"
+  insAddiu: .asciiz "addiu"
+  insAddi: .asciiz "addi"
+  insJal: .asciiz "jal"
+  insSw: .asciiz "sw"
+  insLw: .asciiz "lw"
+  insBeq: .asciiz "beq"
+  insBne: .asciiz "bne"
+  insSlti: .asciiz "slti"
+  insSltiu: .asciiz "sltiu"
+  insAndi: .asciiz "andi"
+  insOri: .asciiz "ori"
+  insXori: .asciiz "xori"
+  insLui: .asciiz "lui"
+  insLb: .asciiz "lb"
+  insLh: .asciiz "lh"
+  insLbu: .asciiz "lbu"
+  insLhu: .asciiz "lhu"
+  insSb: .asciiz "sb"
+  insSh: .asciiz "sh"
+  insAdd: .asciiz "add"
+  insAddu: .asciiz "addu"
+  insSub: .asciiz "sub"
+  insSubu: .asciiz "subu"
+  insAnd: .asciiz "and"
+  insOr: .asciiz "or"
+  insXor: .asciiz "xor"
+  insNor: .asciiz "nor"
+  insSlt: .asciiz "slt"
+  insSltu: .asciiz "sltu"
+  insSll: .asciiz "sll"
+  insSrl: .asciiz "srl"
+  insMfhi: .asciiz "mfhi"
+  insMflo: .asciiz "mflo"
+  insMult: .asciiz "mult"
+  insMultu: .asciiz "multu"
+  insDiv: .asciiz "div"
+  insDivu: .asciiz "divu"
+  insSyscall: .asciiz "syscall"
+  insJr: .asciiz "jr"
+  dolar: .asciiz " $"
+  espaco: .asciiz " "
+.text
+.globl main
+main:
+  la $a0, nomeArquivo
+  li $a1, 0
+  li $a2, 0
+
+  li $v0, 13     # Carrega o código da chamada do sistema para abrir o arquivo
+  syscall
+  move $s0, $v0  # Armazena o descritor do arquivo em $s0
+
+  la $a1, valores
+  li $a2, 1544
+  move $a0, $s0
+  li $v0, 14     # Carrega o código da chamada do sistema para ler do arquivo
+  syscall
+
+  # Percorrer os valores lidos
+  la $t0, valores   # Endereço base da área de memória
+  li $t1, 0        # Índice do valor atual
+  li $t2, 1544       # Quantidade de valores a percorrer
+
+loop:
+  lw $t3, 0($t0)   # Lê o valor de 4 bytes da memória
+
+  li $v0, 34   # Carrega o endereço para ser mostrado
+  move $a0, $t3
+  syscall
+  
+  li $v0, 11
+  li $a0, 10
+  syscall
+  
+  srl $t4, $t3, 26   # Bits 31-26 (6 primeiros bits)
+  andi $t4, $t4, 0x3f # Mascara 
+  
+  beq $t4, 0, tipoR   # Se opcode 0, tipoR
+  bne $t4, 0, tiposIJ # Se opcode != 0, tipoIJ
+
+  addi $t0, $t0, 4  # Avança para o próximo valor
+  addi $t1, $t1, 1  # Atualiza o índice
+  
+  li $v0, 11 
+  li $a0, 10
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  # Verifica se chegou ao fim dos valores
+  bne $t1, $t2, loop
+
+  li $v0, 10       # Carrega o código da chamada do sistema para sair
+  syscall
+  
+  tiposIJ:   # Define instruções pelo valor decimal do opcode 
+  	beq $t4, 2, instrucaoJ
+	beq $t4, 3, instrucaoJal
+	beq $t4, 4, instrucaoBeq
+	beq $t4, 5, instrucaoBne
+	beq $t4, 8, instrucaoAddi
+	beq $t4, 9, instrucaoAddiu
+	beq $t4, 10, instrucaoSlti
+	beq $t4, 11, instrucaoSltiu
+	beq $t4, 12, instrucaoAndi
+	beq $t4, 13, instrucaoOri
+	beq $t4, 14, instrucaoXori
+	beq $t4, 15, instrucaoLui
+	beq $t4, 32, instrucaoLb
+	beq $t4, 33, instrucaoLh
+	beq $t4, 35, instrucaoLw
+	beq $t4, 36, instrucaoLbu
+	beq $t4, 37, instrucaoLhu
+	beq $t4, 40, instrucaoSb
+	beq $t4, 41, instrucaoSh
+  	beq $t4, 43, instrucaoSw
+  	
+  	li $v0, 4
+  	la $a0, instrucaoInvalida # Mostra que instrução é inválida
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11  # Pula linha
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11 # Pula linha 
+  	li $a0, 10
+  	syscall
+
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+  tipoR:
+	andi $t9, $t3, 0x3f   # Bits 5-0 (últimos 6 bits)   FUNCT 
+  
+  
+  	# Define instruções pelo valor decimal do FUNCT 
+  	beq $t9, 0, instrucaoSll  
+  	beq $t9, 2, instrucaoSrl
+  	beq $t9, 8, instrucaoJr
+  	beq $t9, 12, instrucaoSyscall
+  	beq $t9, 16, instrucaoMfhi
+  	beq $t9, 18, instrucaoMflo
+  	beq $t9, 24, instrucaoMult
+  	beq $t9, 25, instrucaoMultu
+  	beq $t9, 26, instrucaoDiv
+  	beq $t9, 27, instrucaoDivu
+  	beq $t9, 32, instrucaoAdd
+  	beq $t9, 33, instrucaoAddu
+  	beq $t9, 34, instrucaoSub
+  	beq $t9, 35, instrucaoSubu
+  	beq $t9, 36, instrucaoAnd
+  	beq $t9, 37, instrucaoOr
+  	beq $t9, 38, instrucaoXor
+  	beq $t9, 39, instrucaoNor
+  	beq $t9, 42, instrucaoSlt
+  	beq $t9, 43, instrucaoSltu
+  	
+  	
+  	# Se não entrou em nenhum beq é uma instrução inválida
+  	li $v0, 4
+  	la $a0, instrucaoInvalida
+  	syscall
+  	
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+ 
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  	
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+  instrucaoSll:
+  	li $v0, 4
+  	la $a0, insSll
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoSrl:
+  	li $v0, 4
+  	la $a0, insSrl
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  
+   instrucaoJr:
+  	li $v0, 4
+  	la $a0, insJr
+  	syscall
+  	
+  	srl $t5, $t3, 21   # Bits 25-21 (próximos 5 bits)  RT 
+  	andi $t5, $t5, 0x1f
+  	
+  	li $v0, 4
+  	la $a0, dolar
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t5
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+   instrucaoSyscall:
+  	li $v0, 4
+  	la $a0, insSyscall
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+   instrucaoMfhi:
+  	li $v0, 4
+  	la $a0, insMfhi
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoMflo:
+  	li $v0, 4
+  	la $a0, insMflo
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoMult:
+  	li $v0, 4
+  	la $a0, insMult
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoMultu:
+  	li $v0, 4
+  	la $a0, insMultu
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoDiv:
+  	li $v0, 4
+  	la $a0, insDiv
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoDivu:
+  	li $v0, 4
+  	la $a0, insDivu
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  
+  instrucaoAdd:
+  	li $v0, 4
+  	la $a0, insAdd
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoAddu:
+  	li $v0, 4
+  	la $a0, insAddu
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoSub:
+  	li $v0, 4
+  	la $a0, insSub
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoSubu:
+  	li $v0, 4
+  	la $a0, insSubu
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoAnd:
+  	li $v0, 4
+  	la $a0, insAnd
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoOr:
+  	li $v0, 4
+  	la $a0, insOr
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoXor:
+  	li $v0, 4
+  	la $a0, insXor
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoNor:
+  	li $v0, 4
+  	la $a0, insNor
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoSlt:
+  	li $v0, 4
+  	la $a0, insSlt
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoSltu:
+  	li $v0, 4
+  	la $a0, insSltu
+  	syscall
+  	
+  	j mostraRegistradoresTipoR
+  	
+  instrucaoJ:
+  	li $v0, 4
+  	la $a0, insJ
+  	syscall
+  
+  	j mostraJumpEndereco
+  	
+  instrucaoJal:
+  	li $v0, 4
+  	la $a0, insJal
+  	syscall
+  
+  	j mostraJumpEndereco
+  	
+  instrucaoAddiu:
+  	li $v0, 4
+  	la $a0, insAddiu
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoSlti:
+  	li $v0, 4
+  	la $a0, insSlti
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoSltiu:
+  	li $v0, 4
+  	la $a0, insSltiu
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoAndi:
+  	li $v0, 4
+  	la $a0, insAndi
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+ 
+  instrucaoOri:
+  	li $v0, 4
+  	la $a0, insOri
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI	
+  
+  instrucaoXori:
+  	li $v0, 4
+  	la $a0, insXori
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoLui:
+  	li $v0, 4
+  	la $a0, insLui
+  	syscall
+  	
+  	srl $t5, $t3, 21   # Bits 25-21 (próximos 5 bits)
+  	andi $t5, $t5, 0x1f
+
+  	srl $t6, $t3, 16   # Bits 20-16 (próximos 5 bits)
+  	andi $t6, $t6, 0x1f
+
+  	andi $t7, $t3, 0xffff   # Bits 15-0 (últimos 16 bits)
+  	
+  	li $v0, 4
+  	la $s0, dolar
+  	move $a0, $s0
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t6
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 34
+  	move $a0, $t7
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+  instrucaoLb:
+  	li $v0, 4
+  	la $a0, insLb
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoLh:
+  	li $v0, 4
+  	la $a0, insLh
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoLbu:
+  	li $v0, 4
+  	la $a0, insLbu
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoLhu:
+  	li $v0, 4
+  	la $a0, insLhu
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoSb:
+  	li $v0, 4
+  	la $a0, insSb
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoSh:
+  	li $v0, 4
+  	la $a0, insSh
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoBeq:
+  	li $v0, 4
+  	la $a0, insBeq
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoBne:
+  	li $v0, 4
+  	la $a0, insBne
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoAddi:
+  	li $v0, 4
+  	la $a0, insAddi
+  	syscall
+  	
+  	j mostraRegistradoresImmediatesTipoI
+  	
+  instrucaoSw:
+  	li $v0, 4
+  	la $a0, insSw
+  	syscall
+  	
+  	j mostraOrdemStoreLoad
+  	
+  instrucaoLw:
+  	li $v0, 4
+  	la $a0, insLw
+  	syscall
+  	
+  	j mostraOrdemStoreLoad
+  	
+  mostraRegistradoresImmediatesTipoI:
+  	srl $t5, $t3, 21   # Bits 25-21 (próximos 5 bits)
+  	andi $t5, $t5, 0x1f
+
+  	srl $t6, $t3, 16   # Bits 20-16 (próximos 5 bits)
+  	andi $t6, $t6, 0x1f
+
+  	andi $t7, $t3, 0xffff   # Bits 15-0 (últimos 16 bits)
+  	
+  	li $v0, 4
+  	la $s0, dolar
+  	move $a0, $s0
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t6
+  	syscall
+  	
+  	li $v0, 4
+  	la $s0, dolar
+  	move $a0, $s0
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t5
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 34
+  	move $a0, $t7
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+  mostraJumpEndereco:
+  	andi $t5, $t3, 0x03FFFFFF   # Apply the mask26 to $t5
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 34
+  	move $a0, $t5
+  	syscall
+  
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+  	
+  mostraOrdemStoreLoad:
+  	srl $t5, $t3, 21   # Bits 25-21 (próximos 5 bits)
+  	andi $t5, $t5, 0x1f
+
+  	srl $t6, $t3, 16   # Bits 20-16 (próximos 5 bits)
+  	andi $t6, $t6, 0x1f
+
+  	andi $t7, $t3, 0xffff   # Bits 15-0 (últimos 16 bits)
+  	
+  	li $v0, 4
+  	la $s0, dolar
+  	move $a0, $s0
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t6
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 34
+  	move $a0, $t7
+  	syscall
+  	
+  	li $v0, 4
+  	la $s0, dolar
+  	move $a0, $s0
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t5
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+  
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall
+
+   mostraRegistradoresTipoR:
+   	srl $t5, $t3, 21   # Bits 25-21 (próximos 5 bits)  RT 
+  	andi $t5, $t5, 0x1f
+
+  	srl $t6, $t3, 16   # Bits 20-16 (próximos 5 bits)  RS 
+  	andi $t6, $t6, 0x1f
+
+  	srl $t7, $t3, 11   # Bits 15-11 (próximos 5 bits)  RD
+  	andi $t7, $t7, 0x1f
+  	
+  	li $v0, 4
+  	la $a0, dolar   # Imprime dolar 
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t7   # Imprime RD 
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, dolar   # Imprime dolar 
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t5    # Imprime RT
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, espaco
+  	syscall
+  	
+  	li $v0, 4
+  	la $a0, dolar   # Imprime dolar 
+  	syscall
+  	
+  	li $v0, 1
+  	move $a0, $t6    # Imprime RS
+  	syscall
+  	
+  	addi $t0, $t0, 4  # Avança para o próximo valor
+  	addi $t1, $t1, 1  # Atualiza o índice
+  	
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	li $v0, 11
+  	li $a0, 10
+  	syscall
+
+  	# Verifica se chegou ao fim dos valores
+  	bne $t1, $t2, loop
+
+  	li $v0, 10       # Carrega o código da chamada do sistema para sair
+  	syscall

@@ -1,0 +1,69 @@
+.data
+  valor: .word 0x00092821
+
+.text
+  lw $t0, valor
+  
+  srl $t2, $t0, 21   # Bits 25-21 (próximos 5 bits)
+  andi $t2, $t2, 0x1f
+
+  srl $t3, $t0, 16   # Bits 20-16 (próximos 5 bits)
+  andi $t3, $t3, 0x1f
+
+  srl $t4, $t0, 11   # Bits 15-11 (próximos 5 bits)
+  andi $t4, $t4, 0x1f
+
+  srl $t5, $t0, 6    # Bits 10-6 (próximos 5 bits)
+  andi $t5, $t5, 0x1f
+
+  andi $t6, $t0, 0x3f   # Bits 5-0 (últimos 6 bits)
+
+  # Agora os valores separados estão nos registradores $t1, $t2, $t3, $t4, $t5, $t6
+  li $v0, 1
+  move $a0, $t1
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  li $v0, 1
+  move $a0, $t2
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  li $v0, 1
+  move $a0, $t3
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  li $v0, 1
+  move $a0, $t4
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  li $v0, 1
+  move $a0, $t5
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+
+  li $v0, 1
+  move $a0, $t6
+  syscall
+
+  li $v0, 11
+  li $a0, 10
+  syscall
+ 
