@@ -1,0 +1,123 @@
+.data
+	valor1: .word 10
+	valor2: .word 20
+	proc3: .asciiz "procedimento 3!"
+.text
+.globl main
+main:
+	li $a0, 0  # Criação da variável N  
+	li $a1, 0  # Criação da variável M
+	li $t2, 0  # Criação da variável Resultado
+	
+	addi $a0, $zero, 9 # Atribuição do valor 9 a variável N
+	addi $a1, $zero, 20 # Atribuição do valor 20 a variável M
+	
+	jal procedimento1 # Pula para a função procedimento 1
+	
+	move $t2, $s0 # Passa o valor de resultado do procedimento 1 para a variavel resultado 
+	li $v0, 1
+	move $a0, $t2
+	syscall
+	
+	li $v0, 10
+	syscall
+	
+procedimento1:
+	la $t0, 0($a0) # Carrega a variável N || x ( $a0 ) para o registrador temporário $t0
+	la $t1, 0($a1) # Carrega a variável M || y ( $a1 ) para o registrador temporário $t1
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	li $v0, 1
+	move $a0, $t1
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	addi $sp, $sp, -40 # Cria e aloca o espaço para o vetor int vetorA[10];
+	
+	li $t3, 0 # Cria a variável I com o valor 0 
+	li $t4, 0 # Cria a variável acumulador com o valor 0 
+	
+	li $t5, 0 # Cria a variável sem nome que será utilizada para salvar o valor de vetorA[i] = I * x + y ;
+	# Posteriormente usada para vetorA[i] = procedimento2(vetorA[i]); também 
+	forLoop:
+		mult $t3, $t0 # Realiza a operação I * x || n 
+		
+		mflo $t5 # Puxa o valor do resultado da operação acima para o registrador $t5 
+		
+		add $t5, $t5, $t1 # Realiza o restante da operação base, sendo agora ( I * x ) + y 
+		
+		sw $t5, 0($sp) # Salvar o valor da operação I * x + n na posicao $t6 do vetorA ( $sp ) 
+		
+		li $v0, 1
+		move $a0, $t5
+		syscall
+		
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		jal procedimento2
+		
+		addi $sp, $sp, 4 # Incrementa a próxima posição do vetorA[i] 
+		addi $t3, $t3, 1  # Realiza a incrementação do i++; 
+		
+		bne $t3, 10, forLoop
+		
+		#jr $ra
+
+procedimento2:
+	la $s7, 0($t3) # Carrega o valor do indice 
+	la $t6, 0($t5) # Carrega o valor que foi inserido em vetorA[i] 
+	
+	beq $s0, 10, sair # Verifica antes de fazer as modificações 
+	move $a1, $s1 # Move para $a1 o valor do vetorA[i] 
+	move $a0, $s0 # Move para $a0 o valor de indice I 
+	
+	#lw $t0, valor1
+	#lw $t1, valor2
+	
+	jal procedimento3
+	
+	jr $ra # Retorna função
+
+procedimento3:
+	la $s0, 0($t6) # Carrega o valor de vetorA[i] 
+	la $s1, 0($t7) # Carrega o valo de indice I 
+	
+	beq $s1, 10, sair
+	
+	la $a0, proc3
+	li $v0, 4
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	li $v0, 1
+	move $a0, $s0
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	jr $ra
+	
+sair:
+	li $v0, 10
+	syscall
