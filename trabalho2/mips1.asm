@@ -50,6 +50,18 @@ procedimento1:
 		
 		jal procedimento2
 		
+		move $t8, $v0
+		
+		li $v0, 1
+		move $a0, $t8
+		syscall
+		
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		sw $t8, 0($sp) # Armazena na pilha o valor do procedimento 2 procedimento 3 
+		
 		move $t0, $s0
 		
 		addi $t0, $t0, 1 # I++
@@ -91,15 +103,7 @@ procedimento2:
 	
 	jal procedimento3
 	
-	move $t4, $v0
-
-	li $v0, 11
-	li $a0, 10
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
+	move $s6, $v0
 
 	move $t2, $t5
 	
@@ -107,10 +111,11 @@ procedimento2:
 	
 	jal procedimento3
 	
-	#add $t1, $t1, $v0	
-	#li $v0, 1
-	#move $a0, $t4
-	#syscall
+	move $t8, $v0
+	
+	add $t4, $s6, $t8
+	
+	move $v0, $t4
 	
 	jr $s3
 	
@@ -147,27 +152,14 @@ procedimento3:
 	slt $t7, $t2, $t0
 	
 	beq $t7, 1, YmaiorX
-
-	li $v0, 1
-	move $a0, $t7
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
 			
 	slt $t7, $t0, $t2 
 	
-	move $a0, $t7
-	
-	li $v0, 1
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
+	move $s5, $t2
 	
 	beq $t7, 1, whileXmaiorY
+	
+	move $v0, $t2
 	
 	jr $s4
 	
@@ -183,14 +175,25 @@ YmaiorX:
 	jr $ra
 		
 whileXmaiorY:
+    slt $t7, $t2, $t0
+    beq $t7, 1, voltaFuncao
 
-	la $a0, while
-	li $v0, 4
-	syscall
+    addi $t0, $t0, 1
+    addi $t2, $t2, -1
+
+    j whileXmaiorY
+
+voltaFuncao:
+    andi $t7, $s5, 1
+    
+    beqz $t7, eh_parEntradaX
+    
+    move $v0, $t2
+    jr $s4
+   
+eh_parEntradaX:
+	addi $t2, $t2, 1 
 	
-	li $v0, 11
-	li $a0, 10
-	syscall
-		
-				
-	jr $ra 
+	move $v0, $t2 
+	
+	jr $s4
