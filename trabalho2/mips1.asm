@@ -23,8 +23,10 @@ main:
 	
 	jal procedimento1
 	
-	li $v0, 4
-	la $a0, mainS
+	move $t0, $v0
+	
+	li $v0, 1
+	move $a0, $t0
 	syscall
 	
 	li $v0, 10
@@ -52,14 +54,6 @@ procedimento1:
 		
 		move $t8, $v0
 		
-		li $v0, 1
-		move $a0, $t8
-		syscall
-		
-		li $v0, 11
-		li $a0, 10
-		syscall
-		
 		sw $t8, 0($sp) # Armazena na pilha o valor do procedimento 2 procedimento 3 
 		
 		move $t0, $s0
@@ -68,33 +62,27 @@ procedimento1:
 		
 		addiu $sp, $sp, 4 # Incrementa $sp para proxima posição do vetorA[i]
 		
-		li $v0, 11
-		li $a0, 10 
-		syscall
-		
-		li $v0, 11
-		li $a0, 10 
-		syscall
-		
 		bne $t0, 10, loopP1
 		
-		li $v0, 4
-		la $a0, string
-		syscall
-		
+	li $t0, 0           # i = 0
+	addiu $sp, $sp, -40
+	loopAcumuladorP1:
+    		lw $t2, 0($sp)
+
+		add $t1, $t1, $t2 # Soma o acumulador com o vetorA[i]
+
+    		addi $t0, $t0, 1
+	
+    		addi $sp, $sp, 4
+
+   		bne $t0, 10, loopAcumuladorP1
+	
+	move $v0, $t1
+
 	move $ra, $s1
 	jr $ra
 	
-procedimento2:
-
-	la $a0, linha
-	li $v0, 4
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
-	
+procedimento2:	
 	move $s3, $ra
 	
 	lw $t0, valor1 
@@ -124,30 +112,6 @@ procedimento3:
 	move $s4, $ra
 
 	li $t4, 0 # Variavel tmp
-	
-	la $a0, valorX
-	li $v0, 4
-	syscall
-	
-	li $v0, 1
-	move $a0, $t2
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
-	
-	la $a0, valorY
-	li $v0, 4
-	syscall
-	
-	li $v0, 1
-	move $a0, $t0
-	syscall
-	
-	li $v0, 11
-	li $a0, 10
-	syscall
 	
 	slt $t7, $t2, $t0
 	
